@@ -1,0 +1,13 @@
+https://jwt.io/
+
+https://base64.guru/converter/decode
+
+http://expressjs.com/en/guide/using-middleware.html
+
+https://www.npmjs.com/package/jsonwebtoken
+
+http://expressjs.com/en/resources/middleware/body-parser.html
+
+extensao thunder client
+
+npm init iniciar projeto
