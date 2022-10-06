@@ -4,12 +4,15 @@ var jwt = require('jsonwebtoken');
 const { response, request } = require('express');
 var app = express()
 var secret = '123456789'
+const bcrypt = require('bcrypt');
+const users = []
+var id = 1
 
 // parse application/json
 app.use(bodyParser.json())
 
 app.use((req, res, next) => {
-    if(req.path == '/login'){
+    if(req.path == '/login' || req.path == '/users'){
         next()
     }else{
         var header = req.headers['authorization']
@@ -55,25 +58,56 @@ app.get('/user',function(req,res){
         }
     })
 })
-app.post('/login',function(req,res){
+app.post('/users',function(req,res){
     console.log(req.body.username)
-    var token = jwt.sign({
-        "name": "arthur",
-        "id" : "1",
-        "email": "arthur@gmail.com"
-    },secret,  { expiresIn: '1h' })
+    const hash = bcrypt.hashSync(req.body.password, 10);
+    var user= {id : id++, name : req.body.name, email : req.body.email, password : hash, city : req.body.city,
+    phone : req.body.phone, birth : req.body.birth, school : req.body.school}
+
+    if(!users.some(e => e.email == req.body.email))
+        users.push(user)
+    
 
     var response = {
         success : true,
-        data : token
     } 
    
     res.status(200).json(response)
 });
 
-jwt.sign({
-    data: 'foobar'
-  }, 'secret', { expiresIn: 60 * 60 });
+app.post('/login',function(req,res){
+    console.log(req.body.username)
+    const user = users.filter(e => e.email == req.body.email).at(0)
+    if(user){
+        var teste = bcrypt.compareSync(req.body.password, user.password);
+        if(teste){
+            var token = jwt.sign({
+                name : user.name,
+                email : user.email,
+                id : user.id
+            },secret,  { expiresIn: '1h' })
+        
+            var response = {
+                success : true,
+                data : token
+            } 
+           
+            res.status(200).json(response)
+            return
+        }
+    }
+    throw Error("Erro login não encontrado")
+});
+
+app.use(function(err, req, res, next) {
+    console.error(err)
+    var response = {
+        success : false,
+        message : err.message
+    } 
+   
+    res.status(500).json(response)
+});
 
 
 app.listen(8080,function(){
