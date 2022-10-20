@@ -58,6 +58,9 @@ app.get('/user',function(req,res){
         }
     })
 })
+
+
+
 app.post('/users',function(req,res){
     console.log(req.body.username)
     const hash = bcrypt.hashSync(req.body.password, 10);
@@ -109,6 +112,22 @@ app.use(function(err, req, res, next) {
     res.status(500).json(response)
 });
 
+app.checkDuplicateEmail = (req, res, next) => {
+      // Email
+      users.findOne({
+        where: {
+            email : req.body.email
+        }
+      }).then(user => {
+        if (user) {
+          res.status(400).send({
+            message: "Email já está em uso!"
+          });
+          return;
+        }
+        next();
+      });
+    }
 
 app.listen(8080,function(){
     console.log("Servidor ativo no porto 8080");
